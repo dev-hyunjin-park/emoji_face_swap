@@ -1,21 +1,18 @@
 let video;
 let faceapi;
 let faceImage;
-let detections;
 
-function drawFace(detections) {
-  const x = detections[detections.length - 1].alignedRect._box._x;
-  const y = detections[detections.length - 1].alignedRect._box._y;
-  const rectWidth = detections[detections.length - 1].alignedRect._box._width;
-  const rectHeight = detections[detections.length - 1].alignedRect._box._height;
-
-  //   noFill();
-  //   stroke(161, 95, 251);
-  //   strokeWeight(2);
-
+function drawFace(result) {
   image(video, 0, 0, width, height);
-  //   rect(x, y, rectWidth, rectHeight);
-  image(faceImage, x - 40, y - 40, rectWidth + 80, rectHeight + 80);
+
+  const { _x, _y, _width, _height } =
+    result[result.length - 1].alignedRect._box;
+
+  const margin = 40;
+  const enlargedWidth = _width + 2 * margin;
+  const enlargedHeight = _height + 2 * margin;
+
+  image(faceImage, _x - margin, _y - margin, enlargedWidth, enlargedHeight);
 }
 
 function gotResults(error, result) {
@@ -23,12 +20,9 @@ function gotResults(error, result) {
     console.log(error);
     return;
   }
-  detections = result;
 
-  if (detections) {
-    if (detections.length > 0) {
-      drawFace(detections);
-    }
+  if (result && result.length > 0) {
+    drawFace(result);
   }
   faceapi.detect(video, gotResults);
 }
