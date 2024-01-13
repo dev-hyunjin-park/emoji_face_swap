@@ -20,28 +20,45 @@ function drawVideo() {
 
   // For one pose only (use a for loop for multiple poses!)
   if (poses.length > 0) {
-    let pose = poses[0].pose;
+    const pose = poses[0].pose;
 
-    // Create a pink ellipse for the nose
-    fill(213, 0, 143);
-    let nose = pose["nose"];
-    ellipse(nose.x, nose.y, 20, 20);
+    const nose = pose["nose"];
+    const eyeL = pose["leftEye"];
+    const eyeR = pose["rightEye"];
 
-    // Create a yellow ellipse for the right eye
-    fill(255, 215, 0);
-    let rightEye = pose["rightEye"];
-    ellipse(rightEye.x, rightEye.y, 20, 20);
+    const earL = pose["leftEar"];
+    const earR = pose["rightEar"];
 
-    // Create a yellow ellipse for the right eye
-    fill(255, 215, 0);
-    let leftEye = pose["leftEye"];
-    ellipse(leftEye.x, leftEye.y, 20, 20);
+    const shourlderL = pose["leftShoulder"];
+    const shourlderR = pose["rightShoulder"];
+
+    const faceWidthDistance = dist(earR.x, earR.y, earL.x, earL.y) * 0.03;
+
+    const faceWidth = (earR.x - earL.x) * faceWidthDistance;
+    // console.log(faceWidthDistance);
+
+    const faceHeightDistance =
+      Math.max(
+        dist(shourlderR.x, shourlderR.y, earR.x, earR.y),
+        dist(shourlderL.x, shourlderL.y, earL.x, earL.y)
+      ) * 0.01;
+    const faceHeight =
+      Math.max(nose.y - eyeR.y, nose.y, eyeL.y) * faceHeightDistance;
+
+    image(
+      faceImage,
+      nose.x - faceWidth / 2,
+      nose.y - faceHeight / 2,
+      faceWidth,
+      faceHeight
+    );
   }
 }
 
 function videoLoaded() {
   console.log("video loaded");
 
+  video.play();
   poseNet = ml5.poseNet(video, modelLoaded);
   poseNet.on("pose", (results) => {
     poses = results;
@@ -53,11 +70,8 @@ function setup() {
   createCanvas(640, 480);
   faceImage = loadImage("smile.png");
 
-  video = createVideo("phoebe.mov", videoLoaded);
+  video = createVideo("video.mov", videoLoaded);
   video.size(640, 480);
-
-  video.showControls();
-  video.loop();
   video.hide();
 }
 
