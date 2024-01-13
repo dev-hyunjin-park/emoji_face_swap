@@ -1,10 +1,14 @@
+let videoInput;
 let video;
 let faceImage;
 
 let isVideoPlaying = false;
+let isRecordingStarted = false;
 
 let poseNet;
 let poses = [];
+
+let capture;
 
 function modelLoaded() {
   console.log("Model Loaded!");
@@ -16,7 +20,6 @@ function drawVideo() {
 
   for (let i = 0; i < poses.length; i++) {
     const pose = poses[i].pose;
-    console.log(poses[i]);
     const nose = pose["nose"];
     const eyeL = pose["leftEye"];
     const eyeR = pose["rightEye"];
@@ -46,6 +49,13 @@ function drawVideo() {
       faceHeight
     );
   }
+
+  if (capture.state === "idle" && !isRecordingStarted) {
+    console.log("녹화 시작");
+    // 녹화 시작
+    capture.start();
+    isRecordingStarted = true;
+  }
 }
 
 function videoLoaded() {
@@ -54,7 +64,12 @@ function videoLoaded() {
   video.elt.muted = true;
   video.play();
   isVideoPlaying = true;
-  video.onended(() => (isVideoPlaying = false));
+  video.onended(() => {
+    isVideoPlaying = false;
+    console.log("비디오 끝");
+    // 캡처 중단
+    capture.stop();
+  });
 
   poseNet = ml5.poseNet(video, modelLoaded);
   poseNet.on("pose", (results) => {
@@ -65,11 +80,23 @@ function videoLoaded() {
   });
 }
 
+function handleVideoFile(file) {
+  print("Got video file:", file);
+  video = createVideo(file.data, videoLoaded);
+  video.hide();
+  videoInput.style("visibility", "hidden");
+}
+
 function setup() {
   createCanvas(640, 480);
+  background(200);
   faceImage = loadImage("smile.png");
-  video = createVideo("video.mov", videoLoaded);
-  video.hide();
+  // 비디오 파일만 수락하도록 videoInput 요소 생성
+  videoInput = createFileInput(handleVideoFile);
+  videoInput.attribute("accept", "video/*");
+  videoInput.position(0, 100);
+
+  capture = P5Capture.getInstance();
 }
 
 function draw() {}
